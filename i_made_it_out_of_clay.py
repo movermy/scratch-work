@@ -138,9 +138,12 @@ class Dreidel_Game:
         
         a[0].hist(self.counts, bins=60, cumulative=False, normed=True)
         a[0].set_title(f'Probability Density')
+        a[0].xaxis.set_label_text('number of turns')
+        a[0].yaxis.set_label_text('number of turns')
         
         a[1].hist(self.counts, bins=120, cumulative=True, normed=True)
         a[1].set_title(f'Cumulative')
+        a[1].xaxis.set_label_text('number of turns')
         plt.show()
   
 
@@ -155,7 +158,7 @@ g = Dreidel_Game(2, 1, 4, 500, verbose=False)
 g.play_game()
 g.analyze_configuration(games_to_play=3000)
 
-g = Dreidel_Game(12, 1, 3, 500, verbose=False)
+g = Dreidel_Game(4, 1, 3, 500, verbose=False)
 g.play_game()
 g.analyze_configuration(games_to_play=3000)
 
