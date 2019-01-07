@@ -153,12 +153,11 @@ g = Dreidel_Game(2, 1, 3, 500, verbose=False)
 g.play_game()
 g.analyze_configuration(games_to_play=3000)               
    
- 
 g = Dreidel_Game(2, 1, 4, 500, verbose=False)
 g.play_game()
 g.analyze_configuration(games_to_play=3000)
 
-g = Dreidel_Game(4, 1, 3, 500, verbose=False)
+g = Dreidel_Game(12, 2, 3, 500, verbose=False)
 g.play_game()
 g.analyze_configuration(games_to_play=3000)
 
