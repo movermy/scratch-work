@@ -1,0 +1,67 @@
+*.bmp
+*.csv
+*.rtf
+*.MPJ
+*.MPJ.BAK
+*.BAK
+*.doc
+*.docx
+*.fig
+*.avi
+*.flv
+*.wmv
+*.mov
+*.mp4
+*.mat
+*.txt
+*.jpg
+*.zip
+*.data
+*.asv
+*.xls
+*.xlsx
+*.xlsm
+*.png
+*.pickle
+*.m
+*.h5
+*.p
+*.zip
+*.z*
+*.tar
+*.gz
+*.jpeg
+*.pyc
+
+
+#specific files and filetypes to allow for tracking
+!*.pbtxt
+!tool_config_endocutter_60.product.pbtxt
+!parameters_to_update.xlsx
+!**/tool_characterization_dev
+!astro_unit_registry.txt
+!constants_en.txt
+!tool_characterization_for-test-list.txt
+!**/rtc_rev_e_tests/params
+!**/rtc_rev_e_tests/startup files
+!**/rtc_rev_e_tests/Attachment 1 PRC087537 Test Matrix.xlsm
+!config.txt
+!Readme.docx
+
+
+#this ignores directories named "temp_data", 
+#temp data is only used locally for script development
+**/temp_data
+
+
+#these directories are auto generated, and we don't want to track them
+**/.cache
+**/__pycache__
+**/.pyc
+**/.pytest_cache
+
+#ignores ethiconcommon for now until further developed
+**/ethiconcommon
+
+#ide directories
+**/.idea/
