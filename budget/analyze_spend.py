@@ -48,7 +48,11 @@ checking_df = chase_csv_import("checking-data")
 checking_df['source'] = 'checking'
 checking_df['Date'] =pd.to_datetime(checking_df['Posting Date'])
 checking_df['epoch'] = (checking_df['Date'] - dt.datetime(1970,1,1)).dt.total_seconds()
+
 checking_df['days'] = (checking_df['epoch'] - checking_df['epoch'].min())/(3600 * 24)
+
+checking_df['epoch'] = checking_df['epoch'] - checking_df['epoch'].min()
+
 checking_df.sort_values(by=['Date'], inplace=True)
 checking_df['test_balance'] = checking_df.Amount.cumsum() + checking_df.Balance.values[0] + 2300
 select_crit = ((~checking_df.Description.str.contains('J&J')) &\
@@ -85,7 +89,40 @@ f.suptitle('Summary of Chase accounts - raw')
 crit = df.source.str.contains("checking")
 a.plot(df.loc[crit].Date, df.loc[crit].Balance, label='Checking Balance')
 crit = df.source.str.contains("savings")
+
 a.plot(df.loc[crit].Date, df.loc[crit].Balance, label='Savings Balance')
+
+plt.plot(df.loc[crit].Date, df.loc[crit].Balance, 'g*')
+
+f,a = plt.subplots(1,1)
+start_time = '2017-05-18'
+X = checking_df.loc[checking_df.Date > start_time].Date
+Y = checking_df.loc[checking_df.Date > start_time].select_balance
+
+a.plot(checking_df.Date, checking_df.Balance, '+', label='Balance')
+a.plot(checking_df.Date, checking_df.select_balance, 'o', label='Select Balance')
+a.plot(checking_df.Date, checking_df.test_balance, '*', label='Test Balance')
+a.plot(X, Y, '-', label='Select Balance barf')
+a.legend()
+
+f,a = plt.subplots(1,1)
+start_time = '2017-05-18'
+checking_df.dropna(subset=['epoch', 'select_balance'], inplace=True)
+X = checking_df.loc[checking_df.Date > start_time].epoch
+Y = checking_df.loc[checking_df.Date > start_time].select_balance
+model = LinearRegression()
+#model.fit(X,Y)
+#Yhat = model.predict(X[:, np.newaxis])
+z = np.polyfit(X, Y, 1)
+p = np.poly1d(z)
+
+a.plot(checking_df.epoch, checking_df.Balance, '+', label='Balance')
+a.plot(checking_df.epoch, checking_df.select_balance, '-', label='Select Balance')
+a.plot(X, Y, 'o', label='fit region')
+a.plot(X, p(X), '--', label='fit')
+a.plot(checking_df.epoch, checking_df.test_balance, '*', label='Test Balance')
+#a.plot(X, Yhat, '-', label='Select Balance barf')
+
 a.legend()
 
 # create "spend/day" trendline
@@ -107,3 +144,4 @@ a.plot(checking_df.days, checking_df.test_balance, '*', label='Test Balance')
 #a.plot(X, Yhat, '-', label='Select Balance barf')
 a.legend()
 
+#https://towardsdatascience.com/time-series-analysis-in-python-an-introduction-70d5a5b1d52a
