@@ -93,71 +93,57 @@ class SpendAnalysis():
         
         plt.plot(self.all_chase_df.loc[crit].Date, 
                  self.all_chase_df.loc[crit].Balance, 'g*')
+        
+    def fit_spend_rate(self):
+        
+        self.spend_is_clean_after_this = '2017-05-18' #after this day, data is clean
+        no_nan_checking = self.checking_df.dropna(subset=['epoch', 'select_balance'])
+        
+        crit = (no_nan_checking.Date > self.spend_is_clean_after_this)
+        self.spend_X = no_nan_checking.loc[crit].days
+        self.spend_Y = no_nan_checking.loc[crit].select_balance
+        
+        spend_fit_coefficients = np.polyfit(self.spend_X, self.spend_Y, 1)
+        self.spend_fit = np.poly1d(spend_fit_coefficients)
+        self.spend_dollars_per_day = self.spend_fit[1]
+    
+    def fit_spend_plot(self):
+        
+        f,a = plt.subplots(1,1)
+        f.suptitle(f'Spend rate is ${abs(round(self.spend_dollars_per_day, 2))}/day')
+        a.plot(self.checking_df.days, self.checking_df.Balance, '+', label='Balance')
+        a.plot(self.checking_df.days, self.checking_df.select_balance, '-', label='Select Balance (no JnJ income or internal tnsf)')
+        a.plot(self.spend_X, self.spend_Y, 'o', label=f'fit region ({self.spend_is_clean_after_this} on)')
+        a.plot(self.spend_X, self.spend_fit(self.spend_X), '--', label='fit')
+        a.plot(self.checking_df.days, self.checking_df.test_balance, '*', label='Test Balance')
+        a.legend()
+    
+    def general_analysis(self):
+        
+        crit = (self.all_chase_df['no_num_description'].str.lower().str.contains('itunes') &\
+        self.all_chase_df['no_num_description'].str.lower().str.contains('bill'))
+        self.itunes_spend = self.all_chase_df.loc[crit].Amount.sum()
 
-
-
-
-'''
-# high level stats
-crit = (df['no_num_description'].str.lower().str.contains('itunes') &\
-        df['no_num_description'].str.lower().str.contains('bill'))
-itunes_spend = df.loc[crit].Amount.sum()
-
-crit = (df['no_num_description'].str.lower().str.contains('j&j'))
-mark = df.loc[crit]
-
-
-
-f,a = plt.subplots(1,1)
-start_time = '2017-05-18'
-X = checking_df.loc[checking_df.Date > start_time].Date
-Y = checking_df.loc[checking_df.Date > start_time].select_balance
-
-a.plot(checking_df.Date, checking_df.Balance, '+', label='Balance')
-a.plot(checking_df.Date, checking_df.select_balance, 'o', label='Select Balance')
-a.plot(checking_df.Date, checking_df.test_balance, '*', label='Test Balance')
-a.plot(X, Y, '-', label='Select Balance barf')
-a.legend()
-
-f,a = plt.subplots(1,1)
-start_time = '2017-05-18'
-checking_df.dropna(subset=['epoch', 'select_balance'], inplace=True)
-X = checking_df.loc[checking_df.Date > start_time].epoch
-Y = checking_df.loc[checking_df.Date > start_time].select_balance
-model = LinearRegression()
-#model.fit(X,Y)
-#Yhat = model.predict(X[:, np.newaxis])
-z = np.polyfit(X, Y, 1)
-p = np.poly1d(z)
-
-a.plot(checking_df.epoch, checking_df.Balance, '+', label='Balance')
-a.plot(checking_df.epoch, checking_df.select_balance, '-', label='Select Balance')
-a.plot(X, Y, 'o', label='fit region')
-a.plot(X, p(X), '--', label='fit')
-a.plot(checking_df.epoch, checking_df.test_balance, '*', label='Test Balance')
-#a.plot(X, Yhat, '-', label='Select Balance barf')
-
-a.legend()
-
-# create "spend/day" trendline
-start_time = '2017-05-18' #after this day, data is clean
-checking_df.dropna(subset=['epoch', 'select_balance'], inplace=True)
-X = checking_df.loc[checking_df.Date > start_time].days
-Y = checking_df.loc[checking_df.Date > start_time].select_balance
-z = np.polyfit(X, Y, 1)
-p = np.poly1d(z)
-
-# plot balance with fit line
-f,a = plt.subplots(1,1)
-f.suptitle(f'Spend rate is ${abs(round(p[1],1))}/day')
-a.plot(checking_df.days, checking_df.Balance, '+', label='Balance')
-a.plot(checking_df.days, checking_df.select_balance, '-', label='Select Balance (no JnJ income or internal tnsf)')
-a.plot(X, Y, 'o', label='fit region')
-a.plot(X, p(X), '--', label='fit')
-a.plot(checking_df.days, checking_df.test_balance, '*', label='Test Balance')
-#a.plot(X, Yhat, '-', label='Select Balance barf')
-a.legend()
-
-
-#if __name__ == '__main__':
-'''
+        crit = (self.all_chase_df['no_num_description'].str.lower().str.contains('j&j'))
+        self.mark_income_df = self.all_chase_df.loc[crit]
+        
+    
+    def print_summary(self):
+        self.fit_spend_rate()
+        self.general_analysis()
+        
+        print((f"Based on cleaned checking, the spend rate is "
+               f"${round(-self.spend_dollars_per_day, 2)}/day"))
+        
+        print((f"You are assuming that spend data is clean after "
+               f"{self.spend_is_clean_after_this}"))
+        
+        print(f"Itunes spend is ${abs(round(self.itunes_spend,2))} total")
+        
+        
+if __name__ == '__main__':
+    sa = SpendAnalysis()
+    sa.print_summary()
+    
+    sa.raw_chase_plot()
+    sa.fit_spend_plot()
