@@ -64,10 +64,12 @@ class SpendAnalysis():
         # duplicates are droped from combo_df, you should be able to 
         # drop csv exports in th efolder willy nilly, though this is
         # not tested
-        csv_name_list = os.listdir(path)
+        # TODO: ensure only csvs make it to list
+        csv_name_list = [item_name for item_name in os.listdir(path) if item_name.find('.csv') > -1]
         df_list = []
         
         for csv_name in csv_name_list:
+            #print(f"now processing csv: {csv_name}")
             df = pd.read_csv(os.path.join(path, csv_name))
             df_list.append(df)
             

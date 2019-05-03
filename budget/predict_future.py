@@ -8,9 +8,15 @@ from sympy.functions.special.delta_functions import Heaviside
 from mpmath import e
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+from datetime import date
 
 from analyze_spend import SpendAnalysis
 from secret_constants import Constants
+
+plt.close('all')
+#plt.ion()
+
 
 sa = SpendAnalysis()
 c = Constants()
@@ -31,23 +37,33 @@ post_tax_income = pre_tax_income * (1 - c.tax_rate) - post_tax_deductions
 
 daily_flow = post_tax_income * days + sa.spend_dollars_per_day * days 
 
-plot(daily_flow)
+#TODO: make it so pycharm does not hang on plot
 
-# build 529 savings
-p = 1 # number of periodic payments in the compounding period
-n = 12 # the number of times that interest is compounded per unit t
-r = 5/100 # the annual interest rate (decimal)
-P = 5000 # principle ammount
-A = 0 # value of the accrued investment
-PMT = 100 # monthly payment
-t = 10 # number of years 
+''' Just extrapolate the present conditions '''
+# create a nice dataframe
 
-compount_interest_for_principal = P*(1+r/n)**(n*t)
-future_value_of_a_series = PMT * p * (((1 + r/n)**(n*t) - 1) / (r/n))
-total = compount_interest_for_principal + future_value_of_a_series
+start_date = (date(2019,5,3))
+end_date = (date(2020,5,3))
+rng = pd.date_range(start_date, end_date, freq='MS')
+rng.name = "Payment_Date"
 
+df = pd.DataFrame(index=rng, columns=['Wealthfront', 'Chase'], dtype='float')
+df.reset_index(inplace=True)
+df.index += 1
+df.index.name = "Period"
 
+annual_interest_rate = c.wealthfront_rate
+compounds_per_year = 12
+payment = -0
+df.Wealthfront = np.fv(c.wealthfront_rate/compounds_per_year,
+                       df.index,
+                       payment,
+                       -c.wealthfront_principal)
 
+df.plot(x='Payment_Date', y='Wealthfront')
+plt.show(block=False)
+
+plt.show()
 
 
 
