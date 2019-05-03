@@ -32,6 +32,7 @@
 *.gz
 *.jpeg
 *.pyc
+secret_constants.py
 
 
 #specific files and filetypes to allow for tracking

@@ -55,6 +55,8 @@ class SpendAnalysis():
 
         self.all_chase_df.sort_values(by=['Date'], inplace=True)
         
+        self.fit_spend_rate()
+        
 
     def chase_csv_import(self, path):
         # When pointed to a directory of chase bank csv export, this 
@@ -129,7 +131,6 @@ class SpendAnalysis():
         
     
     def print_summary(self):
-        self.fit_spend_rate()
         self.general_analysis()
         
         print((f"Based on cleaned checking, the spend rate is "
@@ -147,3 +148,6 @@ if __name__ == '__main__':
     
     sa.raw_chase_plot()
     sa.fit_spend_plot()
+    
+    bc = BudgetConstants()
+    bc.print_vars()
