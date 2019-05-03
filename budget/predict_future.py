@@ -23,21 +23,6 @@ c = Constants()
 days = symbols('days')
 
 
-# build cash flow
-pre_tax_deductions = (c.bi_weekly_IRA_contribution + 
-                      c.bi_weekly_HSA + 
-                      c.bi_weekly_medical) / 14
-
-pre_tax_income = (c.daily_pre_tax_mark - pre_tax_deductions)
-                 
-post_tax_deductions = ((c.bi_weekly_roth_contribution + 
-                       c.bi_weekly_life_dissability) / 14) + c.monthly_529_contributions / 30
-
-post_tax_income = pre_tax_income * (1 - c.tax_rate) - post_tax_deductions
-
-daily_flow = post_tax_income * days + sa.spend_dollars_per_day * days 
-
-#TODO: make it so pycharm does not hang on plot
 
 ''' Just extrapolate the present conditions '''
 # create a nice dataframe
@@ -62,6 +47,21 @@ df.Wealthfront = np.fv(c.wealthfront_rate/compounds_per_year,
 
 df.plot(x='Payment_Date', y='Wealthfront')
 plt.show(block=False)
+
+# build chase cash flow
+pre_tax_deductions = (c.bi_weekly_IRA_contribution +
+                      c.bi_weekly_HSA +
+                      c.bi_weekly_medical) * 2
+
+monthly_pre_tax_income = (c.daily_pre_tax_mark * 30 - pre_tax_deductions)
+
+post_tax_deductions = ((c.bi_weekly_roth_contribution +
+                        c.bi_weekly_life_dissability) * 2)
+
+monthly_post_tax_income = monthly_pre_tax_income * (1 - c.tax_rate) - post_tax_deductions
+
+df.Chase = (monthly_post_tax_income + sa.spend_dollars_per_day * 30) * df.index + c.chase_start_amount
+df.plot(x='Payment_Date', y='Chase')
 
 plt.show()
 

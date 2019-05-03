@@ -46,3 +46,5 @@ df["Principal"] = np.ppmt(Interest_Rate/Payments_Year, df.index, Years*Payments_
 df["Interest"] = np.ipmt(Interest_Rate/Payments_Year, df.index, Years*Payments_Year, Principal)
 df["Addl_Principal"] = -Addl_Principal
 df = df.round(2)
+
+
