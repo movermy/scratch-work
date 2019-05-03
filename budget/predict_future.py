@@ -14,6 +14,9 @@ from datetime import date
 from analyze_spend import SpendAnalysis
 from secret_constants import Constants
 
+# configure globals
+pd.set_option('display.max_columns', 500)
+pd.set_option('expand_frame_rep', False)
 plt.close('all')
 #plt.ion()
 
@@ -45,7 +48,7 @@ df.Wealthfront = np.fv(c.wealthfront_rate/compounds_per_year,
                        payment,
                        -c.wealthfront_principal)
 
-df.plot(x='Payment_Date', y='Wealthfront')
+#df.plot(x='Payment_Date', y='Wealthfront')
 plt.show(block=False)
 
 # build chase cash flow
@@ -61,9 +64,44 @@ post_tax_deductions = ((c.bi_weekly_roth_contribution +
 monthly_post_tax_income = monthly_pre_tax_income * (1 - c.tax_rate) - post_tax_deductions
 
 df.Chase = (monthly_post_tax_income + sa.spend_dollars_per_day * 30) * df.index + c.chase_start_amount
-df.plot(x='Payment_Date', y='Chase')
+#df.plot(x='Payment_Date', y='Chase')
 
+#OLeary mortgage
+start_date = (date(2010,4,3))
+end_date = (date(2020,5,3))
+rng = pd.date_range(start_date, end_date, freq='MS')
+rng.name = "Payment_Date"
+
+oldf = pd.DataFrame(index=rng, columns=['oleary_principal_payment'], dtype='float')
+oldf.reset_index(inplace=True)
+oldf.index += 1
+oldf.index.name = "Period"
+
+oleary_payment = np.pmt(c.oleary_rate/12,
+             c.oleary_payment_years*12,
+             c.oleary_principal)
+print(f"Calculated ${oleary_payment}/month on oleary")
+oldf['oleary_principal_payment'] = np.ppmt(c.oleary_rate/12,
+                                         oldf.index,
+                                         c.oleary_payment_years*12,
+                                         c.oleary_principal)
+oldf['oleary_interest_payment'] = np.ipmt(c.oleary_rate/12,
+                                         oldf.index,
+                                         c.oleary_payment_years*12,
+                                         c.oleary_principal)
+
+oldf['oleary_cumulative_principal'] = oldf['oleary_principal_payment'].abs().cumsum()
+
+fig, ax = plt.subplots(figsize=(20, 10))
+fig.suptitle('OLeary Mortgage')
+ln1 = ax.plot(oldf.Payment_Date, oldf.oleary_cumulative_principal, label='cumu principle', color='k')
+ax2 = ax.twinx()
+ln2 = ax2.plot(oldf.Payment_Date, -oldf.oleary_principal_payment, label='principle payment', color = 'g')
+ln3 = ax2.plot(oldf.Payment_Date, -oldf.oleary_interest_payment, label='interest payment', color = 'r')
+lns = ln1+ln2+ln3
+labs = [l.get_label() for l in lns]
+ax2.legend(lns, labs, loc=0)
+print(oldf.head())
 plt.show()
-
 
 
