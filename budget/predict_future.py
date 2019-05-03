@@ -102,6 +102,9 @@ lns = ln1+ln2+ln3
 labs = [l.get_label() for l in lns]
 ax2.legend(lns, labs, loc=0)
 print(oldf.head())
-plt.show()
 
+
+# combine mortgage df with main df
+df = pd.merge(df, oldf, on=['Payment_Date']) #TODO there is probably a more efficient way to do this
+plt.show()
 
