@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-from sympy import symbols
-from sympy import expand, factor
-from sympy.plotting import plot
-from sympy.functions.special.delta_functions import Heaviside
-from mpmath import e
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -17,21 +11,15 @@ from secret_constants import Constants
 # configure globals
 pd.set_option('display.max_columns', 500)
 pd.set_option('expand_frame_rep', False)
-plt.close('all')
-#plt.ion()
-
 
 sa = SpendAnalysis()
 c = Constants()
-days = symbols('days')
-
 
 
 ''' Just extrapolate the present conditions '''
 # create a nice dataframe
-
-start_date = (date(2019,5,3))
-end_date = (date(2020,5,3))
+start_date = (date(2019, 5, 3))
+end_date = (date(2020, 5, 3))
 rng = pd.date_range(start_date, end_date, freq='MS')
 rng.name = "Payment_Date"
 
@@ -41,6 +29,7 @@ df.reset_index(inplace=True)
 df.index += 1
 df.index.name = "Period"
 
+# calculate future values of some things
 compounds_per_year = 12
 df.Wealthfront = np.fv(c.wealthfront_rate/compounds_per_year,
                        df.index,
