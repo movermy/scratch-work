@@ -7,6 +7,7 @@ from datetime import date
 
 from analyze_spend import SpendAnalysis
 from secret_constants import Constants
+import predict_future_tools as tools
 
 # configure globals
 pd.set_option('display.max_columns', 500)
@@ -15,41 +16,11 @@ pd.set_option('expand_frame_rep', False)
 sa = SpendAnalysis()
 c = Constants()
 
-
 ''' Just extrapolate the present conditions '''
-# create a nice dataframe
-start_date = (date(2019, 5, 3))
-end_date = (date(2020, 5, 3))
-rng = pd.date_range(start_date, end_date, freq='MS')
-rng.name = "Payment_Date"
 
-cols = ['Wealthfront', 'Chase', 'IRA_principal', 'roth_principal', 'hsa_principal']
-df = pd.DataFrame(index=rng, columns=cols, dtype='float')
-df.reset_index(inplace=True)
-df.index += 1
-df.index.name = "Period"
+df = tools.make_empty_timeseries_df((date(2019, 5, 3)), (date(2020, 5, 3)))
 
-# calculate future values of some things
-compounds_per_year = 12
-df.Wealthfront = np.fv(c.wealthfront_rate/compounds_per_year,
-                       df.index,
-                       -0,
-                       -c.wealthfront_principal)
-
-df.IRA_principal = np.fv(c.IRA_rate/compounds_per_year,
-                         df.index,
-                         -c.bi_weekly_IRA_contribution * 2,
-                         -c.IRA_principal)
-
-df.roth_principal = np.fv(c.roth_rate/compounds_per_year,
-                          df.index,
-                          -c.bi_weekly_roth_contribution * 2,
-                          -c.roth_principal)
-
-df.hsa_principal = np.fv(c.HSA_rate/compounds_per_year,
-                         df.index,
-                         -c.bi_weekly_hsa_contribution * 2,
-                         -c.HSA_principal)
+tools.add_future_acount_values(df, c)
 
 
 # build chase cash flow
@@ -64,23 +35,17 @@ post_tax_deductions = ((c.bi_weekly_roth_contribution +
 
 monthly_post_tax_income = monthly_pre_tax_income * (1 - c.tax_rate) - post_tax_deductions
 
-df.Chase = (monthly_post_tax_income + sa.spend_dollars_per_day * 30) * df.index + c.chase_start_amount
+df['Chase'] = (monthly_post_tax_income + sa.spend_dollars_per_day * 30) * df.index + c.chase_start_amount
 
-#OLeary mortgage
-start_date = (date(2010, 4, 3))
-end_date = (date(2020, 5, 3))
-rng = pd.date_range(start_date, end_date, freq='MS')
-rng.name = "Payment_Date"
-
-oldf = pd.DataFrame(index=rng, columns=['oleary_principal_payment'], dtype='float')
-oldf.reset_index(inplace=True)
-oldf.index += 1
-oldf.index.name = "Period"
+# OLeary mortgage
+oldf = tools.make_empty_timeseries_df((date(2010, 4, 3)), (date(2020, 5, 3)))
 
 oleary_payment = np.pmt(c.oleary_rate/12,
-             c.oleary_payment_years*12,
-             c.oleary_principal)
-print(f"Calculated ${oleary_payment}/month on oleary")
+                        c.oleary_payment_years*12,
+                        c.oleary_principal)
+
+print(f"Calculated ${oleary_payment}/month on oleary") #TODO: check olear amortization agains actual
+
 oldf['oleary_principal_payment'] = np.ppmt(c.oleary_rate/12,
                                          oldf.index,
                                          c.oleary_payment_years*12,
@@ -92,20 +57,25 @@ oldf['oleary_interest_payment'] = np.ipmt(c.oleary_rate/12,
 
 oldf['oleary_cumulative_principal'] = oldf['oleary_principal_payment'].abs().cumsum()
 
-fig, ax = plt.subplots(figsize=(20, 10))
-fig.suptitle('OLeary Mortgage')
-ln1 = ax.plot(oldf.Payment_Date, oldf.oleary_cumulative_principal, label='cumu principle', color='k')
-ax2 = ax.twinx()
-ln2 = ax2.plot(oldf.Payment_Date, -oldf.oleary_principal_payment, label='principle payment', color = 'g')
-ln3 = ax2.plot(oldf.Payment_Date, -oldf.oleary_interest_payment, label='interest payment', color = 'r')
-lns = ln1+ln2+ln3
-labs = [l.get_label() for l in lns]
-ax2.legend(lns, labs, loc=0)
-print(oldf.head())
+#tools.plot_oleary_data(oldf)
 
 
 # combine mortgage df with main df
 df = pd.merge(df, oldf, on=['Payment_Date']) #TODO there is probably a more efficient way to do this
 print(df.round(2).head())
+
+tools.plot_overall_summary(df)
+#chase.xlabel('Chase Bank total balance')
+
+
+
+
+
+
+
+
+
+
+
 plt.show()
 
