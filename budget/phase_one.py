@@ -10,13 +10,14 @@ from secret_constants import Constants
 pd.set_option('display.max_columns', 500)
 pd.set_option('expand_frame_rep', False)
 
-class PhaseOne(SpendAnalysis, Constants):
+class PhaseOne():
     """This class handles the financial info for the current state. Current state being early 2019. It uses the spend
     analysis from the past few years, as well as estimated parameters about things like growth rate to create near-
     term projects. The ultimate result is a time series DataFrame with financial projections"""
 
-    def __init__(self, SpendAnalysis, Constants):
+    def __init__(self, SpendAnalysis, Constants, monte_carlo=0):
         self.c = Constants
+        self.c.generate_constants(monte_carlo)
         self.sa = SpendAnalysis
 
         # Create DataFrame to hold all phase 1 period projections
@@ -90,13 +91,19 @@ class PhaseOne(SpendAnalysis, Constants):
                               self.c.bi_weekly_hsa_contribution +
                               self.c.bi_weekly_medical) * 2
 
-        monthly_pre_tax_income = (self.c.daily_pre_tax_mark * 30 - pre_tax_deductions)
+        marks_adjusted_wages = -np.fv(self.c.marks_wages_growth,
+                                     np.floor(self.main_df.index / 12),
+                                     0,
+                                     self.c.daily_pre_tax_mark)
+
+        monthly_pre_tax_income = (marks_adjusted_wages * 30 - pre_tax_deductions)
 
         post_tax_deductions = ((self.c.bi_weekly_roth_contribution +
                                 self.c.bi_weekly_life_dissability) * 2)
 
         monthly_post_tax_income = monthly_pre_tax_income * (1 - self.c.tax_rate) - post_tax_deductions
 
+        #
         self.main_df['Chase'] = (monthly_post_tax_income + self.sa.spend_dollars_per_day * 30) * self.main_df.index + \
                                 self.c.chase_start_amount
 
