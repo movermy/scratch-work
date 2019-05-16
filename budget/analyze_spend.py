@@ -56,6 +56,7 @@ class SpendAnalysis():
         self.all_chase_df.sort_values(by=['Date'], inplace=True)
         
         self.fit_spend_rate()
+        self.fit_savings_rate()
         
 
     def chase_csv_import(self, path):
@@ -110,16 +111,34 @@ class SpendAnalysis():
         spend_fit_coefficients = np.polyfit(self.spend_X, self.spend_Y, 1)
         self.spend_fit = np.poly1d(spend_fit_coefficients)
         self.spend_dollars_per_day = self.spend_fit[1]
-    
-    def fit_spend_plot(self):
+
+    def fit_savings_rate(self):
+        self.savings_fit_start = '2017-09-15'
+        self.savings_fit_end = '2019-01-01'
+        no_nan_checking = self.checking_df.dropna(subset=['epoch', 'Balance'])
+
+        crit = ((no_nan_checking.Date > self.savings_fit_start) & (no_nan_checking.Date < self.savings_fit_end))
+        self.save_X = no_nan_checking.loc[crit].days
+        self.save_Y = no_nan_checking.loc[crit].Balance
+
+        save_fit_coefficients = np.polyfit(self.save_X, self.save_Y, 1)
+        self.save_fit = np.poly1d(save_fit_coefficients)
+        self.save_dollars_per_day = self.save_fit[1]
+
+    def fit_plot(self):
         
         f,a = plt.subplots(1,1)
-        f.suptitle(f'Spend rate is ${abs(round(self.spend_dollars_per_day, 2))}/day')
+        f.suptitle(f'Spend rate is ${abs(round(self.spend_dollars_per_day, 2))}/day. \n Save rate is ${abs(round(self.save_dollars_per_day))}/day')
         a.plot(self.checking_df.days, self.checking_df.Balance, '+', label='Balance')
         a.plot(self.checking_df.days, self.checking_df.select_balance, '-', label='Select Balance (no JnJ income or internal tnsf)')
-        a.plot(self.spend_X, self.spend_Y, 'o', label=f'fit region ({self.spend_is_clean_after_this} on)')
-        a.plot(self.spend_X, self.spend_fit(self.spend_X), '--', label='fit')
         a.plot(self.checking_df.days, self.checking_df.test_balance, '*', label='Test Balance')
+
+        a.plot(self.spend_X, self.spend_Y, 'o', label=f'spend fit region ({self.spend_is_clean_after_this} on)')
+        a.plot(self.spend_X, self.spend_fit(self.spend_X), '--', label='spend fit')
+
+        a.plot(self.save_X, self.save_Y, 'o', label=f'save fit region ({self.spend_is_clean_after_this} on)')
+        a.plot(self.save_X, self.save_fit(self.save_X), '--', label='save fit')
+
         a.legend()
     
     def general_analysis(self):
@@ -145,11 +164,14 @@ class SpendAnalysis():
         
         
 if __name__ == '__main__':
+    plt.close('all')
     sa = SpendAnalysis()
     sa.print_summary()
     
     sa.raw_chase_plot()
-    sa.fit_spend_plot()
-    
-    bc = BudgetConstants()
-    bc.print_vars()
+    sa.fit_plot()
+    plt.show()
+
+    from secret_constants import Constants
+    c = Constants()
+    print(vars(c))

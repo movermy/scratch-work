@@ -83,7 +83,7 @@ class PhaseOne():
 
         return df
 
-    def add_chase_projections_to_main_df(self):
+    def add_chase_projections_to_main_df(self, verbose=False):
         """Calculate savings based on Spend Analysis flow and Secret Constants projections.
          Add as column to main_df"""
 
@@ -91,19 +91,34 @@ class PhaseOne():
                               self.c.bi_weekly_hsa_contribution +
                               self.c.bi_weekly_medical) * 2
 
+        if verbose: print(f"total pre-tax deductions: {pre_tax_deductions}/month")
+
         marks_adjusted_wages = -np.fv(self.c.marks_wages_growth,
                                      np.floor(self.main_df.index / 12),
                                      0,
                                      self.c.daily_pre_tax_mark)
 
+        if verbose: print(f"Marks earns &{marks_adjusted_wages.min()}/day (min), ${marks_adjusted_wages.mean()}/day (average), for this phase")
+        if verbose: print(f"That's ${marks_adjusted_wages.mean() * 365} per year")
+
         monthly_pre_tax_income = (marks_adjusted_wages * 30 - pre_tax_deductions)
+
+        if verbose: print(f"Pre-tax, after deductions, mark gets ${monthly_pre_tax_income.mean()}/month")
+        if verbose: print(f"Pre-tax, after deductions, mark gets ${monthly_pre_tax_income.mean()/30}/day")
+        if verbose: print(f"That's ${monthly_pre_tax_income.mean() * 12} per year remaining")
 
         post_tax_deductions = ((self.c.bi_weekly_roth_contribution +
                                 self.c.bi_weekly_life_dissability) * 2)
 
+        if verbose: print(f"Post tax deductions are {post_tax_deductions}/month")
+
         monthly_post_tax_income = monthly_pre_tax_income * (1 - self.c.tax_rate) - post_tax_deductions
 
-        #
+        if verbose: print(f"Average post tax income is ${monthly_post_tax_income.mean()}/month")
+        if verbose: print(f"Average post tax income is ${monthly_post_tax_income.mean() / 30}/day")
+        if verbose: print(f"Average post tax income is ${monthly_post_tax_income.mean() * 12}/year")
+
+        if verbose: print(f"You spend {self.sa.spend_dollars_per_day * 30}/month")
         self.main_df['Chase'] = (monthly_post_tax_income + self.sa.spend_dollars_per_day * 30) * self.main_df.index + \
                                 self.c.chase_start_amount
 
@@ -183,5 +198,7 @@ if __name__ == '__main__':
     p1.summarize_oleary()
 
     p1.plot_overall_summary()
+
+    p1.add_chase_projections_to_main_df(verbose=True)
 
     plt.show()
