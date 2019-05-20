@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 from sklearn.linear_model import LinearRegression
 import numpy as np
+import pickle
 plt.close('all')
 
 
@@ -140,6 +141,8 @@ class SpendAnalysis():
         a.plot(self.save_X, self.save_fit(self.save_X), '--', label='save fit')
 
         a.legend()
+
+        return a
     
     def general_analysis(self):
         
@@ -161,6 +164,24 @@ class SpendAnalysis():
                f"{self.spend_is_clean_after_this}"))
         
         print(f"Itunes spend is ${abs(round(self.itunes_spend,2))} total")
+
+    def save(self, fileName):
+        """save class instance to pickle file"""
+
+        f = file(fileName, "w")
+        pickle.dump(self, f)
+        f.close()
+
+    def load(fileName):
+        """return class instance from a file"""
+
+        f = file(fileName, "r")
+        obj = pickle.load(f)
+        f.close()
+        return obj
+    # make load a static method
+    load = staticmethod(load)
+
         
         
 if __name__ == '__main__':
@@ -175,3 +196,5 @@ if __name__ == '__main__':
     from secret_constants import Constants
     c = Constants()
     print(vars(c))
+
+    pickle.dump(sa, open("erase-this.p", "wb"))
