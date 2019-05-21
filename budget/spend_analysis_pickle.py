@@ -7,16 +7,15 @@ from analyze_spend import SpendAnalysis #gotta do this so pickles made externall
 
 start_dir = os.getcwd()
 os.chdir(r"spend analysis pickles")
-sa = pickle.load( open( "erase-this.p", "rb" ) )
-sa2 = pickle.load( open( r"erase-this.p", "rb" ) )
+before = pickle.load( open( "erase-this.p", "rb" ) )
+after = pickle.load( open( r"with_march.p", "rb" ) )
 os.chdir(start_dir)
 
 
-a1 = sa.fit_plot()
-print(a1.set_title('a1'))
+b = before.fit_plot()
+print(b.set_title('Before'))
 
-a2 = sa2.fit_plot()
-print(a2.set_title('a2'))
-
+a = after.fit_plot()
+print(a.set_title('after'))
 
 plt.show()
