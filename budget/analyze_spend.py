@@ -18,7 +18,7 @@ plt.close('all')
 class SpendAnalysis():
 
     def __init__(self):
-        verbose = True
+        verbose = False
         ''' Create and format a Dataframe for chase credit card'''
         if verbose: print(f"Gathering credit card info")
         self.card_df = self.chase_csv_import("card-data")
@@ -89,7 +89,7 @@ class SpendAnalysis():
     def raw_chase_plot(self):
         # plot the raw balances for chase related accounts 
 
-        f,a = plt.subplots(1,1)
+        f,a = plt.subplots(ncols=1,nrows=1,figsize=(12, 6))
         f.suptitle('Summary of Chase accounts - raw')
 
         crit = self.all_chase_df.source.str.contains("checking")
@@ -105,6 +105,8 @@ class SpendAnalysis():
         plt.plot(self.all_chase_df.loc[crit].Date,
                  self.all_chase_df.loc[crit].Balance, 'g*')
 
+        a.legend()
+
     def fit_spend_rate(self):
 
         self.spend_is_clean_after_this = '2017-05-18' #after this day, data is clean
@@ -113,6 +115,7 @@ class SpendAnalysis():
         crit = (no_nan_checking.Date > self.spend_is_clean_after_this)
         self.spend_X = no_nan_checking.loc[crit].days
         self.spend_Y = no_nan_checking.loc[crit].select_balance
+        self.spend_dates = no_nan_checking.loc[crit].Date
 
         spend_fit_coefficients = np.polyfit(self.spend_X, self.spend_Y, 1)
         self.spend_fit = np.poly1d(spend_fit_coefficients)
@@ -126,6 +129,7 @@ class SpendAnalysis():
         crit = ((no_nan_checking.Date > self.savings_fit_start) & (no_nan_checking.Date < self.savings_fit_end))
         self.save_X = no_nan_checking.loc[crit].days
         self.save_Y = no_nan_checking.loc[crit].Balance
+        self.save_dates = no_nan_checking.loc[crit].Date
 
         save_fit_coefficients = np.polyfit(self.save_X, self.save_Y, 1)
         self.save_fit = np.poly1d(save_fit_coefficients)
@@ -133,17 +137,17 @@ class SpendAnalysis():
 
     def fit_plot(self):
 
-        f,a = plt.subplots(1,1)
+        f,a = plt.subplots(ncols=1,nrows=1, figsize=(12, 6))
         f.suptitle(f'Spend rate is ${abs(round(self.spend_dollars_per_day, 2))}/day. \n Save rate is ${abs(round(self.save_dollars_per_day))}/day')
-        a.plot(self.checking_df.days, self.checking_df.Balance, '+', label='Balance')
-        a.plot(self.checking_df.days, self.checking_df.select_balance, '-', label='Select Balance (no JnJ income or internal tnsf)')
-        a.plot(self.checking_df.days, self.checking_df.test_balance, '*', label='Test Balance')
+        a.plot(self.checking_df.Date, self.checking_df.Balance, '+', label='Balance')
+        a.plot(self.checking_df.Date, self.checking_df.select_balance, '-', label='Select Balance (no JnJ income or internal tnsf)')
+        a.plot(self.checking_df.Date, self.checking_df.test_balance, '*', label='Test Balance')
 
-        a.plot(self.spend_X, self.spend_Y, 'o', label=f'spend fit region ({self.spend_is_clean_after_this} on)')
-        a.plot(self.spend_X, self.spend_fit(self.spend_X), '--', label='spend fit')
+        a.plot(self.spend_dates, self.spend_Y, 'o', label=f'spend fit region ({self.spend_is_clean_after_this} on)')
+        a.plot(self.spend_dates, self.spend_fit(self.spend_X), '--', label='spend fit')
 
-        a.plot(self.save_X, self.save_Y, 'o', label=f'save fit region ({self.spend_is_clean_after_this} on)')
-        a.plot(self.save_X, self.save_fit(self.save_X), '--', label='save fit')
+        a.plot(self.save_dates, self.save_Y, 'o', label=f'save fit region ({self.spend_is_clean_after_this} on)')
+        a.plot(self.save_dates, self.save_fit(self.save_X), '--', label='save fit')
 
         a.legend()
 
