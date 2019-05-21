@@ -71,7 +71,10 @@ class SpendAnalysis():
         # drop csv exports in th efolder willy nilly, though this is
         # not tested
         # TODO: ensure only csvs make it to list
+<<<<<<< HEAD
         # TODO: sometimes, exports have #'s when they are not expanded, and cause errors. Fix this.
+=======
+>>>>>>> 4f12ed4f6b4fc6909fbe9b70e84640aaed1e7f12
         csv_name_list = [item_name for item_name in os.listdir(path) if ((item_name.find('.csv') > -1) or ((item_name.find('.CSV') > -1)))]
         df_list = []
 
@@ -89,7 +92,11 @@ class SpendAnalysis():
     def raw_chase_plot(self):
         # plot the raw balances for chase related accounts 
 
+<<<<<<< HEAD
         f,a = plt.subplots(ncols=1,nrows=1,figsize=(12, 6))
+=======
+        f,a = plt.subplots(1,1)
+>>>>>>> 4f12ed4f6b4fc6909fbe9b70e84640aaed1e7f12
         f.suptitle('Summary of Chase accounts - raw')
 
         crit = self.all_chase_df.source.str.contains("checking")
