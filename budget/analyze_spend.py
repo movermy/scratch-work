@@ -13,6 +13,8 @@ from sklearn.linear_model import LinearRegression
 import numpy as np
 import pickle
 plt.close('all')
+pd.set_option('display.max_columns', 500)
+pd.set_option('expand_frame_rep', False)
 
 
 class SpendAnalysis():
@@ -62,6 +64,7 @@ class SpendAnalysis():
 
         self.fit_spend_rate()
         self.fit_savings_rate()
+        self.general_analysis()
 
 
     def chase_csv_import(self, path):
@@ -71,15 +74,13 @@ class SpendAnalysis():
         # drop csv exports in th efolder willy nilly, though this is
         # not tested
         # TODO: ensure only csvs make it to list
-<<<<<<< HEAD
         # TODO: sometimes, exports have #'s when they are not expanded, and cause errors. Fix this.
-=======
->>>>>>> 4f12ed4f6b4fc6909fbe9b70e84640aaed1e7f12
+
         csv_name_list = [item_name for item_name in os.listdir(path) if ((item_name.find('.csv') > -1) or ((item_name.find('.CSV') > -1)))]
         df_list = []
 
         for csv_name in csv_name_list:
-            print(f"now processing csv: {csv_name}")
+            #print(f"now processing csv: {csv_name}")
             df = pd.read_csv(os.path.join(path, csv_name))
             df_list.append(df)
 
@@ -92,11 +93,7 @@ class SpendAnalysis():
     def raw_chase_plot(self):
         # plot the raw balances for chase related accounts 
 
-<<<<<<< HEAD
         f,a = plt.subplots(ncols=1,nrows=1,figsize=(12, 6))
-=======
-        f,a = plt.subplots(1,1)
->>>>>>> 4f12ed4f6b4fc6909fbe9b70e84640aaed1e7f12
         f.suptitle('Summary of Chase accounts - raw')
 
         crit = self.all_chase_df.source.str.contains("checking")
@@ -169,6 +166,23 @@ class SpendAnalysis():
         crit = (self.all_chase_df['no_num_description'].str.lower().str.contains('j&j'))
         self.mark_income_df = self.all_chase_df.loc[crit]
 
+        # Energy spend analysis
+        crit = (self.all_chase_df['no_num_description'].str.lower().str.contains('duke'))
+        self.duke_spend = self.all_chase_df.loc[crit].Amount.mean()
+        std = self.all_chase_df.loc[crit].Amount.std()
+
+        self.mark_income_df = self.mark_income_df.set_index('Date')
+        f,a = plt.subplots(1,1)
+        a.plot( self.mark_income_df.Amount, '*', label='raw')
+
+        window = '30d'
+        a.plot(self.mark_income_df.Amount.rolling(window).sum(), label='rolling: '+window)
+        a.legend()
+        a.set_title('Marks J&J take-home')
+        plt.show()
+
+        print(self.mark_income_df.columns)
+
 
     def print_summary(self):
         self.general_analysis()
@@ -205,7 +219,6 @@ if __name__ == '__main__':
     sa = SpendAnalysis()
     sa.print_summary()
 
-    sa.raw_chase_plot()
     sa.fit_plot()
     plt.show()
 
@@ -213,4 +226,4 @@ if __name__ == '__main__':
     c = Constants()
     print(vars(c))
 
-    pickle.dump(sa, open("with_march.p", "wb"))
+    #pickle.dump(sa, open("with_march.p", "wb"))

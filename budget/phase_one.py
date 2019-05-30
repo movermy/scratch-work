@@ -26,7 +26,8 @@ class PhaseOne():
         self.main_df = self.make_empty_timeseries_df(self.phase_one_start,
                                                      self.phase_one_end)
         self.add_future_acount_values_to_main_df()
-        self.add_chase_projections_to_main_df()
+        self.add_theoretical_chase_projections_to_main_df()
+        self.add_empirical_chase_projections_to_main_df()
 
         # Create DataFrame for OLeary mortgage
         self.oleary_start = (date(2010, 4, 1))
@@ -83,9 +84,15 @@ class PhaseOne():
 
         return df
 
-    def add_chase_projections_to_main_df(self, verbose=False):
+    def add_empirical_chase_projections_to_main_df(self):
+        """Use historic empirical SpendAnalysis projections to predict Chase balance """
+
+        self.main_df['Empirical_Chase'] = (self.sa.save_dollars_per_day * 30) * self.main_df.index + \
+                                            self.c.chase_start_amount
+
+    def add_theoretical_chase_projections_to_main_df(self, verbose=False):
         """Calculate savings based on Spend Analysis flow and Secret Constants projections.
-         Add as column to main_df"""
+         Add as column to main_df. Note: seems very innacurate, hence theoretical"""
 
         pre_tax_deductions = (self.c.bi_weekly_IRA_contribution +
                               self.c.bi_weekly_hsa_contribution +
@@ -119,8 +126,8 @@ class PhaseOne():
         if verbose: print(f"Average post tax income is ${monthly_post_tax_income.mean() * 12}/year")
 
         if verbose: print(f"You spend {self.sa.spend_dollars_per_day * 30}/month")
-        self.main_df['Chase'] = (monthly_post_tax_income + self.sa.spend_dollars_per_day * 30) * self.main_df.index + \
-                                self.c.chase_start_amount
+        self.main_df['Theoretical_Chase'] = (monthly_post_tax_income + self.sa.spend_dollars_per_day * 30) * self.main_df.index + \
+                                            self.c.chase_start_amount
 
     def add_future_acount_values_to_main_df(self):
         """Calculate future value of investments and adds them as columns to the main_df"""
@@ -189,16 +196,16 @@ class PhaseOne():
         retirement.set_title('Investment Projections')
 
         chase = ax[2]  # type:axes.Axes
-        chase.plot(self.main_df.Payment_Date, self.main_df.Chase)
-        chase.set_title("Chase bank ballance, all accounts")
+        chase.plot(self.main_df.Payment_Date, self.main_df.Theoretical_Chase, label='Theoretical Chase Balance')
+        chase.plot(self.main_df.Payment_Date, self.main_df.Empirical_Chase, label='Empirical Chase Balance')
+        chase.set_title("Chase bank balance, all accounts")
+        chase.legend()
 
 if __name__ == '__main__':
     p1 = PhaseOne(SpendAnalysis(), Constants())
 
-    p1.summarize_oleary()
+    #p1.summarize_oleary()
 
     p1.plot_overall_summary()
-
-    p1.add_chase_projections_to_main_df(verbose=True)
 
     plt.show()

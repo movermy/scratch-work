@@ -27,7 +27,8 @@ class PhaseTwo():
                                                      self.phase_two_end)
 
         self.add_future_acount_values_to_main_df()
-        self.add_chase_projections_to_main_df()
+        self.add_empirical_chase_projections_to_main_df()
+        self.add_theoretical_chase_projections_to_main_df()
 
         # Combine previous df with main df
         self.combo_df = pd.concat([self.previous_df, self.main_df],
@@ -97,7 +98,16 @@ class PhaseTwo():
                                               -self.c.bi_weekly_hsa_contribution * 2,
                                               -self.previous_df.hsa_principal.values[-1])
 
-    def add_chase_projections_to_main_df(self):
+    def add_empirical_chase_projections_to_main_df(self):
+        """Use historic empirical SpendAnalysis projections to predict Chase balance """
+
+        house_sale_balance = self.previous_df.oleary_cumulative_principal.values[-1] - self.c.castle_downpayment
+
+        # TODO: estimate increase in montly home related costs (insurance, energy, cleaning, etc)
+        self.main_df['Empirical_Chase'] = (self.sa.save_dollars_per_day * 30) * self.main_df.index + \
+                                            (self.previous_df.Empirical_Chase.values[-1] + house_sale_balance)
+
+    def add_theoretical_chase_projections_to_main_df(self):
         """Calculate savings based on Spend Analysis flow and Secret Constants projections.
          Add as column to main_df"""
 
@@ -130,8 +140,8 @@ class PhaseTwo():
         monthly_post_tax_income = monthly_pre_tax_income * (1 - self.c.tax_rate) - post_tax_deductions
 
         house_sale_balance = self.previous_df.oleary_cumulative_principal.values[-1] - self.c.castle_downpayment
-        self.main_df['Chase'] = (monthly_post_tax_income + self.sa.spend_dollars_per_day * 30) * self.main_df.index + \
-                                (self.previous_df.Chase.values[-1] + house_sale_balance)
+        self.main_df['Theoretical_Chase'] = (monthly_post_tax_income + self.sa.spend_dollars_per_day * 30) * self.main_df.index + \
+                                (self.previous_df.Theoretical_Chase.values[-1] + house_sale_balance)
 
 
 
