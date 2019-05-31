@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from phase_one import PhaseOne
 from phase_two import PhaseTwo
@@ -12,9 +14,10 @@ print(p1.main_df.head())
 
 p2 = PhaseTwo(SpendAnalysis(), Constants(), p1.main_df, monte_carlo=0)
 
+p2.plot()
 
 
-print(f"{p2.oleary_payment}, {p2.castle_payment}")
+
 
 
 

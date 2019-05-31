@@ -33,13 +33,19 @@ class PhaseTwo():
         # Combine previous df with main df
         self.combo_df = pd.concat([self.previous_df, self.main_df],
                                   ignore_index=True, verify_integrity=True, sort=True)
-        self.summarize()
-        self.plot()
-    def plot(self):
-        f, a = plt.subplots()
 
-        a.plot(self.combo_df.Payment_Date, self.combo_df.Wealthfront)
-        a.plot(self.combo_df.Payment_Date, self.combo_df.Chase)
+    def plot(self):
+        f, a = plt.subplots(nrows=3, ncols=1)
+        e_chase = a[0]
+        t_chase = a[1]
+        wealth = a[2]
+
+        wealth.plot(self.combo_df.Payment_Date, self.combo_df.Wealthfront)
+        wealth.set_ylabel('Wealthfront Balance')
+        t_chase.plot(self.combo_df.Payment_Date, self.combo_df['Theoretical_Chase'])
+        t_chase.set_ylabel('Theoretical Chase Balance')
+        e_chase.plot(self.combo_df.Payment_Date, self.combo_df['Empirical_Chase'])
+        e_chase.set_ylabel('Empirical Chase Balance')
         plt.show()
 
     def summarize(self):
@@ -103,10 +109,22 @@ class PhaseTwo():
 
         house_sale_balance = self.previous_df.oleary_cumulative_principal.values[-1] - self.c.castle_downpayment
 
-        # TODO: estimate increase in montly home related costs (insurance, energy, cleaning, etc)
-        self.main_df['Empirical_Chase'] = (self.sa.save_dollars_per_day * 30) * self.main_df.index + \
-                                            (self.previous_df.Empirical_Chase.values[-1] + house_sale_balance)
+        oleary_payment = np.pmt(self.c.oleary_rate / 12,
+                                self.c.oleary_payment_years * 12,
+                                self.c.oleary_principal)
 
+        castle_payment = np.pmt(self.c.castle_rate / 12,
+                                self.c.castle_payment_years * 12,
+                                self.c.castle_principal)
+
+        additional_monthly_expenses = (abs(castle_payment) - abs(oleary_payment)) + \
+                                      (abs(self.c.castle_monthly_insurance) - abs(self.c.oleary_monthly_insurance)) + \
+                                      (abs(self.c.castle_monthly_taxes) - abs(self.c.oleary_monthly_taxes))
+
+        # TODO: estimate increase in montly home related costs (insurance, energy, cleaning, etc)
+        self.main_df['Empirical_Chase'] = (self.sa.save_dollars_per_day * 30 - additional_monthly_expenses) * self.main_df.index + \
+                                          (self.previous_df.Empirical_Chase.values[-1] + house_sale_balance)
+        pass
     def add_theoretical_chase_projections_to_main_df(self):
         """Calculate savings based on Spend Analysis flow and Secret Constants projections.
          Add as column to main_df"""

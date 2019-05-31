@@ -173,6 +173,8 @@ class SpendAnalysis():
 
         self.mark_income_df = self.mark_income_df.set_index('Date')
         f,a = plt.subplots(1,1)
+
+        '''
         a.plot( self.mark_income_df.Amount, '*', label='raw')
 
         window = '30d'
@@ -182,6 +184,7 @@ class SpendAnalysis():
         plt.show()
 
         print(self.mark_income_df.columns)
+        '''
 
 
     def print_summary(self):
