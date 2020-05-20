@@ -3,33 +3,16 @@ import time         #calling for time to provide delays in program
 
 from joystick_utilities import get_random_audio_path
 
-'''
-pygame.init()
-clock = pygame.time.Clock()
-
-# setup joystick
-pygame.joystick.init()
-joystick = pygame.joystick.Joystick(0)
-joystick.init()
-name = joystick.get_name()
-assert name.find("logitech") >= 0
-
-# -------- Main Program Loop -----------
-done = False
-while not done:
-
-    clock.tick(20)
-
-pygame.quit()
-'''
-
 class JoystickSoundboard():
 
     def __init__(self):
 
         self.pygame = pygame
         self.pygame.init()
+        self.screen = self.pygame.display.set_mode((400, 400), 0, 32) #this is here for troubleshooting
+
         self.add_logitech_joystic()
+        self.sound_setup()
 
         self.main_loop()
 
@@ -37,17 +20,32 @@ class JoystickSoundboard():
 
         clock = pygame.time.Clock()
         done = False
-
+        print("Starting Main Loop")
         while not done:
 
             for event in self.pygame.event.get():  # User did something.
                 if event.type == self.pygame.JOYBUTTONDOWN:
-                    print("Joystick button pressed.")
+                    if (event.button + 1) == 11:
+                        done = True
+                    else:
+                        print("You pressed! {}".format(event.button+1))
+                        print("playing {}".format(self.random_path))
+                        ch = self.random_sound.play()
+                        while ch.get_busy():
+                            pygame.time.delay(100)
                 elif event.type == self.pygame.JOYBUTTONUP:
-                    print("Joystick button released.")
+                    print("You released {}".format(event.button+1))
+
 
             clock.tick(20)
+            self.pygame.display.update()
         self.pygame.quit()
+
+    def sound_setup(self):
+
+        self.pygame.mixer.init()
+        self.random_path = get_random_audio_path()
+        self.random_sound = self.pygame.mixer.Sound(self.random_path)
 
     def add_logitech_joystic(self):
         '''This function looks for the Logitech Attack3 joystick.
