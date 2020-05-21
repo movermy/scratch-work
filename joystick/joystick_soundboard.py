@@ -1,7 +1,8 @@
 import pygame
-import time         #calling for time to provide delays in program
+import time  
+import sys       #calling for time to provide delays in program
 
-from joystick_utilities import get_random_audio_path
+from joystick_utilities import get_random_audio_path, get_all_audio_paths
 
 class JoystickSoundboard():
 
@@ -12,6 +13,8 @@ class JoystickSoundboard():
         self.screen = self.pygame.display.set_mode((400, 400), 0, 32) #this is here for troubleshooting
 
         self.add_logitech_joystic()
+        
+        self.pygame.mixer.init()
         self.sound_setup()
 
         self.main_loop()
@@ -33,6 +36,7 @@ class JoystickSoundboard():
                         ch = self.random_sound.play()
                         while ch.get_busy():
                             pygame.time.delay(100)
+                        self.sound_setup()
                 elif event.type == self.pygame.JOYBUTTONUP:
                     print("You released {}".format(event.button+1))
 
@@ -40,12 +44,39 @@ class JoystickSoundboard():
             clock.tick(20)
             self.pygame.display.update()
         self.pygame.quit()
+        sys.exit()
 
     def sound_setup(self):
 
-        self.pygame.mixer.init()
-        self.random_path = get_random_audio_path()
-        self.random_sound = self.pygame.mixer.Sound(self.random_path)
+        
+        #self.random_path = get_random_audio_path()
+        #self.random_sound = self.pygame.mixer.Sound(self.random_path)
+        
+        link = [s for s in get_all_audio_paths() if 'zoup' in s]
+        self.zoup = self.pygame.mixer.Sound(link[0])
+        
+        link = [s for s in get_all_audio_paths() if 'lazer' in s]
+        self.laser = self.pygame.mixer.Sound(link[0])
+        
+        link = [s for s in get_all_audio_paths() if 'fons__zap-2' in s]
+        #self.zap1 = self.pygame.mixer.Sound(link[0])
+        
+        link = [s for s in get_all_audio_paths() if 'phaser' in s]
+        self.phaser = self.pygame.mixer.Sound(link[0])
+        
+        link = [s for s in get_all_audio_paths() if 'electric-zap' in s]
+        #self.zap2 = self.pygame.mixer.Sound(link[0])
+        
+        link = [s for s in get_all_audio_paths() if 'fart-3' in s]
+        self.fart = self.pygame.mixer.Sound(link[0])
+        
+        link = [s for s in get_all_audio_paths() if 'gong' in s]
+        self.gong = self.pygame.mixer.Sound(link[0])
+        
+        
+        
+        
+        
 
     def add_logitech_joystic(self):
         '''This function looks for the Logitech Attack3 joystick.
@@ -70,7 +101,12 @@ class JoystickSoundboard():
 
 if __name__ == "__main__":
 
-
-    js = JoystickSoundboard()
+    try:
+        js = JoystickSoundboard()
+    except Exception as e:
+        print(e)
+        js.pygame.quit()
+    finally:
+        sys.exit()
 
     #print(js.joystick.get_name())
