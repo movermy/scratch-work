@@ -32,8 +32,8 @@ class JoystickSoundboard():
                         done = True
                     else:
                         print("You pressed! {}".format(event.button+1))
-                        print("playing {}".format(self.random_path))
-                        ch = self.random_sound.play()
+                        print("playing {}".format(self.sound_list[event.button]))
+                        ch = self.sound_list[event.button].play()
                         while ch.get_busy():
                             pygame.time.delay(100)
                         self.sound_setup()
@@ -72,6 +72,13 @@ class JoystickSoundboard():
         
         link = [s for s in get_all_audio_paths() if 'gong' in s]
         self.gong = self.pygame.mixer.Sound(link[0])
+        
+        self.sound_list = []
+        for i in range(0,10):
+                self.sound_list.append(self.fart)
+                
+        self.sound_list[3] = self.phaser
+        self.sound_list[4] = self.laser
         
         
         
