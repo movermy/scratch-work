@@ -23,12 +23,16 @@ class JoystickSoundboard():
         clock = pygame.time.Clock()
         done = False
         print("Starting Main Loop")
+        btn_11_dwn = False
+        btn_6_dwn = False
         while not done:
 
             for event in self.pygame.event.get():  # User did something.
                 if event.type == self.pygame.JOYBUTTONDOWN:
                     if (event.button + 1) == 11:
-                        done = True
+                        btn_11_dwn = True
+                    if (event.button + 1) == 6:
+                        btn_6_dwn = True
                     else:
                         print("You pressed! {}".format(event.button+1))
                         print("playing {}".format(self.sound_list[event.button]))
@@ -37,11 +41,19 @@ class JoystickSoundboard():
                             pygame.time.delay(100)
                         self.sound_setup()
                 elif event.type == self.pygame.JOYBUTTONUP:
-                    print("You released {}".format(event.button+1))
+                        if (event.button + 1) == 11:
+                                btn_11_dwn = False
+                        if (event.button + 1) == 6:
+                                btn_6_dwn = False
+                        print("You released {}".format(event.button+1))
+                    
+            if btn_6_dwn and btn_11_dwn:
+                done = True
 
 
             clock.tick(20)
             self.pygame.display.update()
+            
         self.pygame.quit()
         sys.exit()
 
@@ -73,7 +85,7 @@ class JoystickSoundboard():
         self.gong = self.pygame.mixer.Sound(link[0])
         
         self.sound_list = []
-        for i in range(0,10):
+        for i in range(0,11):
                 self.sound_list.append(self.fart)
                 
         self.sound_list[1] = self.zoup
