@@ -1,22 +1,21 @@
 import pygame
 import time  
 import sys       #calling for time to provide delays in program
+import os
 
 from joystick_utilities import get_random_audio_path, get_all_audio_paths
 
 class JoystickSoundboard():
 
     def __init__(self):
-
+        
         self.pygame = pygame
         self.pygame.init()
         self.screen = self.pygame.display.set_mode((400, 400), 0, 32) #this is here for troubleshooting
-
-        self.add_logitech_joystic()
         
+        self.add_logitech_joystick()
         self.pygame.mixer.init()
         self.sound_setup()
-
         self.main_loop()
 
     def main_loop(self):
@@ -77,15 +76,17 @@ class JoystickSoundboard():
         for i in range(0,10):
                 self.sound_list.append(self.fart)
                 
+        self.sound_list[1] = self.zoup
         self.sound_list[3] = self.phaser
         self.sound_list[4] = self.laser
+        self.sound_list[6] = self.gong
         
         
         
         
         
 
-    def add_logitech_joystic(self):
+    def add_logitech_joystick(self):
         '''This function looks for the Logitech Attack3 joystick.
         if found, the self.joystick is set to its object'''
 
@@ -96,7 +97,7 @@ class JoystickSoundboard():
             some_joystick = self.pygame.joystick.Joystick(i)
             some_joystick.init()
             name = some_joystick.get_name()
-            if name.lower().find("logitech") >= 0:
+            if name.lower().find("logitech") >= 0 and name.lower().find("3") >= 0:
                 # joystick found
                 logitech_joystic_index = i
                 break
