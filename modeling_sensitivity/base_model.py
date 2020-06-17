@@ -105,7 +105,15 @@ class BaseModel:
         plt.show()
 
 class SimplePhysicalModel(BaseModel):
-
+	"""A simple example to demon BaseModel
+	
+	The physical system: a 'bucket' (really a rectangular prism) full of some matterial.
+	The bucket is suspended from a cable
+	
+	perhaps, the designer wants the hold some amount of liquid in the box, minimizing the material 
+	used to build the box while keeping the stress in the cable below some breaking point"""
+	
+	
     def __init__(self):
 
         # Bucket subsystem parameters
